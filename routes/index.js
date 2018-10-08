@@ -47,6 +47,7 @@ function listener() {
 
 function listFile() {
     fileList = [];
+    triggered = false;
     glob("public/**", {nodir:true},(er, files) =>{
         console.log("Listing Files...");
         files.forEach((file) => {
@@ -57,7 +58,7 @@ function listFile() {
 
 
         });
-        triggered = false;
+
         console.log("...Done");
     });
 }
