@@ -30,6 +30,7 @@ router.get('/getFilesManifest', function (req, res, next) {
 
 watcher
     .on('add', listener)
+    .on('change', listener)
     .on('unlink', listener)
     .on('error', function(error) {console.error('Error happened', error);});
 
