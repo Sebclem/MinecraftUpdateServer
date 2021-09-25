@@ -7,6 +7,14 @@
 var app = require('../app');
 var debug = require('debug')('minecraftupdateserver:server');
 var http = require('http');
+const fs = require("fs");
+
+if (!fs.existsSync('public/resources')){
+  fs.mkdirSync('public/resources', { recursive: true });
+}
+if (!fs.existsSync('public/forge')){
+  fs.mkdirSync('public/forge', { recursive: true });
+}
 
 /**
  * Get port from environment and store in Express.
