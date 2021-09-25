@@ -5,7 +5,7 @@ on:
 
 
 env:
-  IMAGE: "MinecraftUpdateServer"
+  IMAGE: "minecraft_update_server"
   REPOSITORY: ghcr.io/sebclem
   IMAGE_SOURCE : https://github.com/Sebclem/MinecraftUpdateServer
 
