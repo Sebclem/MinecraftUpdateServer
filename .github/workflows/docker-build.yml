@@ -24,11 +24,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ${{matrix.arch}}
+      - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: latest
+          tags: ${{env.REPOSITORY}}/${{env.IMAGE}}:latest
           file: Dockerfile
           cache-from: type=registry,ref=${{env.REPOSITORY}}/${{env.IMAGE}}/${{matrix.arch}}:latest
           cache-to: type=inline
