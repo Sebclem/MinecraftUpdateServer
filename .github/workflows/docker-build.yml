@@ -1,0 +1,36 @@
+name: docker build
+
+on:
+  push:
+
+
+env:
+  IMAGE: "MinecraftUpdateServer"
+  REPOSITORY: ghcr.io/sebclem
+  IMAGE_SOURCE : https://github.com/Sebclem/MinecraftUpdateServer
+
+
+
+jobs:
+  build-dockers:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v2
+      - name: Login to ghcr.io
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{matrix.arch}}
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: latest
+          file: Dockerfile
+          cache-from: type=registry,ref=${{env.REPOSITORY}}/${{env.IMAGE}}/${{matrix.arch}}:latest
+          cache-to: type=inline
+          build_args: |
+            IMAGE_SOURCE=${{env.IMAGE_SOURCE}}
