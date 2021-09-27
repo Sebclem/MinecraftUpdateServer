@@ -143,7 +143,7 @@ function listFile() {
             let fileName = file.slice(file.lastIndexOf('/') + 1);
             let hash = sha1(file);
             let size = fs.statSync(file).size;
-            fileList.push({ id: fileName, path: file.replace("public/", ""), hash: hash, size: size });
+            fileList.push({ id: fileName, path: file.replace("public/resources/", ""), hash: hash, size: size });
 
 
         });
