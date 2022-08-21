@@ -16,6 +16,8 @@ let watcher = chokidar.watch('public/resources', { ignored: /^\./, persistent: t
 
 let forgeWatcher = chokidar.watch('public/forge', { ignored: /^\./, persistent: true });
 
+let farbricWatcher = chokidar.watch('public/fabric', { ignored: /^\./, persistent: true });
+
 
 router.get('/getFilesManifest', function (req, res, next) {
     if (triggered) {
@@ -41,6 +43,30 @@ router.get('/getForgeManifest/:version', function (req, res, next) {
             let manifest = JSON.parse(fs.readFileSync(`public/forge/${version}/manifest.json`));
             for (let lib of manifest.libraries) {
                 if (!lib.downloads.artifact.url) {
+                    let splited = lib.downloads.artifact.path.split('/')
+                    let name = splited[splited.length - 1]
+                    lib.downloads.artifact.url = `/forge/${version}/${name}`
+                }
+            }
+            res.json(manifest);
+        } else {
+            res.status(404);
+            res.send()
+        }
+    }
+
+});
+
+router.get('/getFabicManifest/:version', function (req, res, next) {
+    let version = req.params.version
+    if (version == null) {
+        res.status(400);
+        res.send()
+    } else {
+        if (fs.existsSync(`public/fabric/${version}`)) {
+            let manifest = JSON.parse(fs.readFileSync(`public/forge/${version}/manifest.json`));
+            for (let lib of manifest.libraries) {
+                if (lib.downloads && !lib.downloads.artifact.url) {
                     let splited = lib.downloads.artifact.path.split('/')
                     let name = splited[splited.length - 1]
                     lib.downloads.artifact.url = `/forge/${version}/${name}`
@@ -88,50 +114,67 @@ function frogeListener() {
     }
 }
 
-function buildForgeManifest() {
-    let dir = fs.readdirSync("public/forge");
-    for (let folder of dir) {
-        console.log(`Check forge for ${folder} ...`)
-        if (fs.existsSync(`public/forge/${folder}/manifest.json`)) {
-            let manifest = JSON.parse(fs.readFileSync(`public/forge/${folder}/manifest.json`));
-            let libNames = []
-            for(let lib of manifest["libraries"]){
-                libNames.push(lib.name);
-            }
-            glob(`public/forge/${folder}/**`, { nodir: true }, (er, files) => {
-                files.forEach((file) => {
-                    let fileName = file.slice(file.lastIndexOf('/') + 1);
-                    if(!fileName.includes("json") && !libNames.includes(fileName)){
-                        let filePath;
-                        if(file.includes("client"))
-                            filePath = file.replace(`public/forge/${dir}/`, 'net/minecraft/')
-                        else
-                            filePath = `net/minecraftforge/forge/${dir}/${file.slice(file.lastIndexOf('/') + 1)}`;
-                        let hash = sha1(file);
-                        let size = fs.statSync(file).size;
 
-                        manifest["libraries"].push({
-                            name: fileName,
-                            downloads:
-                                {
-                                    artifact: {
-                                        path: filePath,
-                                        url: file.replace("public/", "/"),
-                                        sha1: hash,
-                                        size: size
-                                    }
-                                }
-                        })
-                    }
-                });
-                fs.writeFileSync(`public/forge/${folder}/manifest.json`, JSON.stringify(manifest, null, 2));
-                console.log(`...Done`)
-            })
-        } else {
-            console.log(`...No manifest found`)
-        }
-    }
-}
+farbricWatcher
+    .on('add', fabricListener)
+    .on('change', fabricListener)
+    .on('unlink', fabricListener)
+    .on('error', function (error) {
+        console.error('Error happened', error);
+    });
+
+// function fabricListener() {
+//     if (!forgeTriggered) {
+//         console.log("Trigger fabric! Waiting...");
+//         forgeTriggered = true;
+//         setTimeout(buildForgeManifest, 5000);
+//     }
+// }
+
+// function buildLoaderManifest(subfolder) {
+//     let dir = fs.readdirSync(`public/${subfolder}`);
+//     for (let folder of dir) {
+//         console.log(`Check forge for ${folder} ...`)
+//         if (fs.existsSync(`public/${subfolder}/${folder}/manifest.json`)) {
+//             let manifest = JSON.parse(fs.readFileSync(`public/forge/${folder}/manifest.json`));
+//             let libNames = []
+//             for(let lib of manifest["libraries"]){
+//                 libNames.push(lib.name);
+//             }
+//             glob(`public/${subfolder}/${folder}/**`, { nodir: true }, (er, files) => {
+//                 files.forEach((file) => {
+//                     let fileName = file.slice(file.lastIndexOf('/') + 1);
+//                     if(!fileName.includes("json") && !libNames.includes(fileName)){
+//                         let filePath;
+//                         if(file.includes("client"))
+//                             filePath = file.replace(`public/forge/${dir}/`, 'net/minecraft/')
+//                         else
+//                             filePath = `net/minecraftforge/forge/${dir}/${file.slice(file.lastIndexOf('/') + 1)}`;
+//                         let hash = sha1(file);
+//                         let size = fs.statSync(file).size;
+
+//                         manifest["libraries"].push({
+//                             name: fileName,
+//                             downloads:
+//                                 {
+//                                     artifact: {
+//                                         path: filePath,
+//                                         url: file.replace("public/", "/"),
+//                                         sha1: hash,
+//                                         size: size
+//                                     }
+//                                 }
+//                         })
+//                     }
+//                 });
+//                 fs.writeFileSync(`public/forge/${folder}/manifest.json`, JSON.stringify(manifest, null, 2));
+//                 console.log(`...Done`)
+//             })
+//         } else {
+//             console.log(`...No manifest found`)
+//         }
+//     }
+// }
 
 
 function listFile() {
